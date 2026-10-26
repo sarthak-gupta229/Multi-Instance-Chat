@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ConversationType {
+  PRIVATE
+  GROUP
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model User {
+  id         String    @id @default(uuid())
+  username   String    @unique
+  lastSeenAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  memberships          ConversationMember[]
+  createdConversations Conversation[]       @relation("ConversationCreator")
+  sentMessages         Message[]
+}
+
+model Conversation {
+  id   String           @id @default(uuid())
+  type ConversationType
+  name String?
+
+  directKey String? @unique
+
+  lastSeq     BigInt   @default(0)
+  createdById String
+  createdBy   User     @relation("ConversationCreator", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members  ConversationMember[]
+  messages Message[]
+}
+
+model ConversationMember {
+  conversationId String
+  userId         String
+  role           MemberRole @default(MEMBER)
+  joinedAt       DateTime   @default(now())
+  leftAt         DateTime?
+
+  lastDeliveredSeq BigInt @default(0)
+  lastReadSeq      BigInt @default(0)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String @id @default(uuid())
+  conversationId String
+  senderId       String
+
+  clientMessageId String
+  content         String   @db.Text
+  seq             BigInt
+  createdAt       DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id])
+
+  @@unique([senderId, clientMessageId])
+  @@unique([conversationId, seq])
+  @@index([conversationId, seq])
+}

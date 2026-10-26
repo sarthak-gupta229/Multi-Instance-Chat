@@ -5,11 +5,13 @@
     "outDir": "./dist",
 
     /* Environment Settings */
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "target": "esnext",
     "lib": ["esnext"],
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
 
     /* Outputs */
     "sourceMap": true,
@@ -25,7 +27,8 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
